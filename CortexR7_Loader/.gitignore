@@ -1,0 +1,7 @@
+*.o
+*.a
+*.elf
+*.bin
+*.map
+out/
+build/
