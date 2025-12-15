@@ -1,0 +1,144 @@
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2018 GlobalLogic
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#ifndef BL2_AVB_AB_FLOW_H
+#define BL2_AVB_AB_FLOW_H
+
+/* Magic for the A/B struct when serialized. */
+#define AVB_AB_MAGIC "\0AB0"
+#define AVB_AB_MAGIC_LEN 4
+
+/* Versioning for the on-disk A/B metadata - keep in sync with avbtool. */
+#define AVB_AB_MAJOR_VERSION 1
+#define AVB_AB_MINOR_VERSION 0
+
+/* Size of AvbABData struct. */
+#define AVB_AB_DATA_SIZE 32
+
+/* Maximum values for slot data */
+#define AVB_AB_MAX_PRIORITY 15
+#define AVB_AB_MAX_TRIES_REMAINING 7
+
+typedef struct AvbABSlotData {
+	/* Slot priority. Valid values range from 0 to AVB_AB_MAX_PRIORITY,
+	 * both inclusive with 1 being the lowest and AVB_AB_MAX_PRIORITY
+	 * being the highest. The special value 0 is used to indicate the
+	 * slot is unbootable.
+	 */
+	uint8_t priority;
+
+	/* Number of times left attempting to boot this slot ranging from 0
+	 * to AVB_AB_MAX_TRIES_REMAINING.
+	 */
+	uint8_t tries_remaining;
+
+	/* Non-zero if this slot has booted successfully, 0 otherwise. */
+	uint8_t successful_boot;
+
+	/* Reserved for future use. */
+	uint8_t reserved[1];
+} __attribute__((packed)) AvbABSlotData;
+
+/* Struct used for recording A/B metadata.
+ *
+ * When serialized, data is stored in network byte-order.
+ */
+typedef struct AvbABData {
+	/* Magic number used for identification - see AVB_AB_MAGIC. */
+	uint8_t magic[AVB_AB_MAGIC_LEN];
+
+	/* Version of on-disk struct - see AVB_AB_{MAJOR,MINOR}_VERSION. */
+	uint8_t version_major;
+	uint8_t version_minor;
+
+	/* Padding to ensure |slots| field start eight bytes in. */
+	uint8_t reserved1[2];
+
+	/* Per-slot metadata. */
+	AvbABSlotData slots[2];
+
+	/* Reserved for future use. */
+	uint8_t reserved2[12];
+
+	/* CRC32 of all 28 bytes preceding this field. */
+	uint32_t crc32;
+} __attribute__((packed)) AvbABData;
+
+typedef enum {
+	AVB_AB_FLOW_RESULT_OK,
+	AVB_AB_FLOW_RESULT_ERROR_IO,
+	AVB_AB_FLOW_RESULT_ERROR_NO_BOOTABLE_SLOTS,
+	AVB_AB_FLOW_RESULT_ERROR_INVALID_ARGUMENT
+} AvbABFlowResult;
+
+#if (EMMC_BOOT_P2==1)
+void avb_ab_set_boot_partition(int slot_idx);
+#endif
+AvbABFlowResult avb_ab_flow(void);
+
+int32_t avb_get_boot_partition_idx(void);
+
+uint32_t avb_ab_is_success(void);
+
+enum MergeStatus {
+	/*
+	 * No snapshot or merge is in progress.
+	 */
+	VIRTUAL_AB_NONE,
+
+	/*
+	 * The merge status could not be determined.
+	 */
+	VIRTUAL_AB_UNKNOWN,
+
+	/*
+	 * Partitions are being snapshotted, but no merge has been started.
+	 */
+	VIRTUAL_AB_SNAPSHOTED,
+
+	/*
+	 * At least one partition has merge is in progress.
+	 */
+	VIRTUAL_AB_MERGING,
+
+	/*
+	 * A merge was in progress, but it was canceled by the bootloader.
+	 */
+	VIRTUAL_AB_CANCELLED
+};
+
+typedef struct misc_virtual_ab_message {
+  uint8_t version;
+  uint32_t magic;
+  uint8_t merge_status;
+  uint8_t source_slot; /* Slot number when merge_status was written. */
+  uint8_t reserved[57];
+} __attribute__((packed)) MiscVirtABMsg;
+
+#define MAX_VIRTUAL_AB_MESSAGE_VERSION 2
+#define MISC_VIRTUAL_AB_MAGIC_HEADER 0x56740AB0
+#define AVB_AB_MAX_SLOTS 2
+
+#endif /* BL2_AVB_AB_FLOW_H */
