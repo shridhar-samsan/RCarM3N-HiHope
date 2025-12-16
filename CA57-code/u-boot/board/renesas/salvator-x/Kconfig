@@ -1,0 +1,37 @@
+if TARGET_SALVATOR_X
+
+config SYS_SOC
+	default "rmobile"
+
+config SYS_BOARD
+	default "salvator-x"
+
+config SYS_VENDOR
+	default "renesas"
+
+config SYS_CONFIG_NAME
+	default "salvator-x"
+
+config FASTBOOT_BY_SW
+bool "Enter fastboot by SW22"
+	default n
+	depends on R8A7795 || R8A7796
+	help
+	  Allows to enter at fastboot mode while
+	  holding down SW22 button
+
+config DEFAULT_IPL_IMAGE_SIZE
+int "Default IPL image size"
+	default 4194304
+	depends on R8A7795 || R8A7796
+	help
+	  Defines the default IPL image size.
+
+config CMD_DTBOINFO
+bool "Get information about dtbo"
+	default y
+	depends on R8A7795 || R8A7796
+	help
+	  Get information about dtbo
+
+endif

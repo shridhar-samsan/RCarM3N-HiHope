@@ -1,0 +1,104 @@
+/*
+ * Device Tree Source overlay for Android partition table
+ *
+ * Copyright (C) 2019 - 2020 GlobalLogic
+ *
+ * This file is licensed under the terms of the GNU General Public License
+ * version 2.  This program is licensed "as is" without any warranty of any
+ * kind, whether express or implied.
+ */
+
+/* For correct work of AVB the heap size (which is defined by CONFIG_SYS_MALLOC_LEN
+ * constant in include/configs/rcar-gen3-common.h) should be set higher  than  the
+ * summarized value of the partitions that defined below [boot_a + boot_b + vbmeta_a
+ * + vbmeta_b + dtbo_a + dtbo_b + vendor_boot_a + vendor_boot_b].
+ */
+
+/ {
+	android {
+		partitions {
+			misc {
+				title = "misc";
+				type = "raw";
+				size = <0x0 0x80000>; /* 0.5 MB */
+			};
+#ifdef CONFIG_VIDEO_RENESAS
+			logo {
+				title = "logo";
+				type = "raw";
+				size = <0x0 0x800000>; /* 8 MB */
+			};
+#endif
+#ifndef CONFIG_OPTEE
+			pst {
+				title = "pst";
+				type = "raw";
+				size = <0x0 0x80000>; /* 0.5 MB */
+			};
+#endif
+			vbmeta_a {
+				title = "vbmeta";
+				slot = "_a";
+				type = "raw";
+				size = <0x0 0x80000>; /* 0.5 MB */
+			};
+			vbmeta_b {
+				title = "vbmeta";
+				slot = "_b";
+				type = "raw";
+				size = <0x0 0x80000>; /* 0.5 MB */
+			};
+			dtbo_a {
+				title = "dtbo";
+				slot = "_a";
+				type = "raw";
+				size = <0x0 0x80000>; /* 0.5 MB */
+			};
+			dtbo_b {
+				title = "dtbo";
+				slot = "_b";
+				type = "raw";
+				size = <0x0 0x80000>; /* 0.5 MB */
+			};
+			boot_a {
+				title = "boot";
+				slot = "_a";
+				type = "raw";
+				size = <0x0 0x8000000>; /* 128 MB */
+			};
+			boot_b {
+				title = "boot";
+				slot = "_b";
+				type = "raw";
+				size = <0x0 0x8000000>; /* 128 MB */
+			};
+			vendor_boot_a {
+				title = "vendor_boot";
+				slot = "_a";
+				type = "raw";
+				size = <0x0 0x8000000>; /* 128 MB */
+			};
+			vendor_boot_b {
+				title = "vendor_boot";
+				slot = "_b";
+				type = "raw";
+				size = <0x0 0x8000000>; /* 128 MB */
+			};
+			metadata {
+				title = "metadata";
+				type = "ext4";
+				size = <0x0 0x1000000>; /* 16 MB */
+			};
+			super {
+				title = "super";
+				type = "raw";
+				size = <0x0 0xC3D00000>; /* 3.133 GB */
+			};
+			userdata {
+				title = "userdata";
+				type = "f2fs";
+				size = <0x0 0x0>;
+			};
+		};
+	};
+};

@@ -1,0 +1,28 @@
+# Build output
+build/
+*.o
+*.a
+*.bin
+*.dtb
+*.elf
+*.map
+*.srec
+*.img
+
+# U-Boot generated files
+u-boot
+u-boot.bin
+u-boot.img
+u-boot.dtb
+u-boot.sym
+System.map
+.env
+.config
+.config.old
+*.cmd
+*.tmp
+
+# Binman / tools output
+tools/binman/test/*.bin
+tools/binman/test/*.img
+tools/binman/test/*.dtb
